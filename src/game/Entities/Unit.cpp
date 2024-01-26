@@ -57,12 +57,15 @@
  #include "Metric/Metric.h"
 #endif
 
+#ifdef ENABLE_IMMERSIVE
+#include "Immersive.h"
+#endif
+
 #include <math.h>
 #include <limits>
 #include <array>
 
 #include "Hardcore/HardcoreMgr.h"
-#include "Immersive/Immersive.h"
 
 float baseMoveSpeed[MAX_MOVE_TYPE] =
 {
@@ -3287,7 +3290,10 @@ float Unit::CalculateEffectiveDodgeChance(const Unit* attacker, WeaponAttackType
     const bool isPlayerOrPet = HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
-    difference += sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_DODGE);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_DODGE);
+#endif
+
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
     // NPCs gain additional bonus dodge chance based on positive skill difference
@@ -3315,7 +3321,10 @@ float Unit::CalculateEffectiveParryChance(const Unit* attacker, WeaponAttackType
     const bool isPlayerOrPet = HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
-    difference += sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_PARRY);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_PARRY);
+#endif
+
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
     // NPCs gain additional bonus parry chance based on positive skill difference (same value as bonus miss rate)
@@ -3345,7 +3354,10 @@ float Unit::CalculateEffectiveBlockChance(const Unit* attacker, WeaponAttackType
     const bool isPlayerOrPet = HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
-    difference += sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_BLOCK);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, attacker, this, immersive::IMMERSIVE_EFFECTIVE_CHANCE_BLOCK);
+#endif
+
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
     // NPCs cannot gain bonus block chance based on positive skill difference
@@ -3798,7 +3810,10 @@ float Unit::CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType at
     // weapon skill does not benefit crit% vs NPCs
     const uint32 skill = (weapon && !vsPlayerOrPet ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
     int32 difference = int32(skill - victim->GetDefenseSkillValue(this));
-    difference += sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_CRIT);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_CRIT);
+#endif
+
     // Weapon skill factor: for players and NPCs
     float factor = 0.04f;
     // Crit suppression against NPCs with higher level
@@ -3836,7 +3851,10 @@ float Unit::CalculateEffectiveMissChance(const Unit *victim, WeaponAttackType at
     const bool vsPlayerOrPet = victim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
     int32 difference = int32(victim->GetDefenseSkillValue(this) - skill);
-    difference += sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_MISS);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_MISS);
+#endif
+
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
     // NPCs gain additional bonus to incoming hit chance reduction based on positive skill difference (same value as bonus parry rate)
@@ -3921,7 +3939,10 @@ float Unit::CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolM
     // Level difference: positive adds to miss chance, negative substracts
     const bool vsPlayerOrPet = victim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     int32 difference = int32(victim->GetLevelForTarget(this) - GetLevelForTarget(victim));
-    difference += sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_SPELL_MISS);
+#ifdef ENABLE_IMMERSIVE
+    difference = sImmersive.CalculateEffectiveChance(difference, this, victim, immersive::IMMERSIVE_EFFECTIVE_CHANCE_SPELL_MISS);
+#endif
+
     // Level difference factor: 1% per level
     uint8 factor = 1;
     // NPCs and players gain additional bonus to incoming spellInfo hit chance reduction based on positive level difference
@@ -12000,7 +12021,9 @@ float Unit::GetAttackDistance(Unit const* target) const
     uint32 creaturelevel = GetLevelForTarget(target);
 
     int32 leveldif = int32(playerlevel) - int32(creaturelevel);
-    leveldif += sImmersive.CalculateEffectiveChance(leveldif, this, target, immersive::IMMERSIVE_EFFECTIVE_ATTACK_DISTANCE);
+#ifdef ENABLE_IMMERSIVE
+    leveldif = sImmersive.CalculateEffectiveChance(leveldif, this, target, immersive::IMMERSIVE_EFFECTIVE_ATTACK_DISTANCE);
+#endif
 
     // "The maximum Aggro Radius has a cap of 25 levels under. Example: A level 30 char has the same Aggro Radius of a level 5 char on a level 60 mob."
     if (leveldif < -25)
