@@ -86,7 +86,6 @@
 #endif
 
 #ifdef ENABLE_IMMERSIVE
-#include "ImmersiveConfig.h"
 #include "Immersive.h"
 #endif
 
@@ -1584,10 +1583,6 @@ void World::SetInitialWorldSettings()
 #ifndef BUILD_AHBOT
     auctionbot.Init();
 #endif
-#endif
-
-#ifdef ENABLE_IMMERSIVE
-    sImmersiveConfig.Initialize();
 #endif
 
     // Load Hardcore manager
