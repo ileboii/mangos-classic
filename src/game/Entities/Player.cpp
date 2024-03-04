@@ -19204,6 +19204,11 @@ void Player::RemoveCityTitle()
 
 void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 {
+#ifdef ENABLE_MODULES
+    if (!sModuleMgr.OnPreRewardPlayerAtKill(this, pVictim))
+    {
+#endif
+
     // honor can be in PvP and !PvP (racial leader) cases
     RewardHonor(pVictim, 1);
 
@@ -19223,7 +19228,8 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
     }
 
 #ifdef ENABLE_MODULES
-    sModuleMgr.OnRewardSinglePlayerAtKill(this, pVictim);
+    }
+    sModuleMgr.OnRewardPlayerAtKill(this, pVictim);
 #endif
 }
 
