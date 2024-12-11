@@ -27,10 +27,6 @@
 #include "Globals/ObjectMgr.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 
-#ifdef ENABLE_MODULES
-#include "ModuleMgr.h"
-#endif
-
 BattleGroundAV::BattleGroundAV(): m_mineYellTimer(BG_AV_MINE_YELL), m_honorMapComplete(0), m_repTowerDestruction(0), m_repCaptain(0), m_repBoss(0), m_repOwnedGrave(0), m_repOwnedMine(0), m_repSurviveCaptain(0), m_repSurviveTower(0)
 {
     m_startMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
@@ -358,10 +354,6 @@ void BattleGroundAV::StartingEventOpenDoors()
     GetBgMap()->GetVariableManager().SetVariable(BG_AV_STATE_SCORE_SHOW_A, WORLD_STATE_ADD);
 
     OpenDoorEvent(BG_EVENT_DOOR);
-
-#ifdef ENABLE_MODULES
-    sModuleMgr.OnStartBattleGround(this);
-#endif
 }
 
 void BattleGroundAV::AddPlayer(Player* player)
@@ -493,10 +485,6 @@ void BattleGroundAV::UpdatePlayerScore(Player* source, uint32 type, uint32 value
             BattleGround::UpdatePlayerScore(source, type, value);
             break;
     }
-
-#ifdef ENABLE_MODULES
-    sModuleMgr.OnUpdatePlayerScore(this, source, type, value);
-#endif
 }
 
 // Process the destruction of a battleground node
@@ -508,7 +496,7 @@ void BattleGroundAV::ProcessPlayerDestroyedPoint(AVNodeIds node)
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(ownerTeamIdx);
     Team ownerTeam = GetTeamIdByTeamIndex(ownerTeamIdx);
 
-    bool isTower = !m_nodes[node].graveyardId;
+    bool isTower = m_nodes[node].graveyardId == 0;
     uint32 newState = ownerTeam == ALLIANCE ? avNodeWorldStates[node].worldStateAlly : avNodeWorldStates[node].worldStateHorde;
 
     // despawn banner
@@ -628,12 +616,12 @@ void BattleGroundAV::HandlePlayerClickedOnFlag(Player* player, GameObject* go)
 
     DEBUG_LOG("BattleGroundAV: Player from team %u clicked on gameobject entry %u", player->GetTeam(), go->GetEntry());
 
-    uint8 event = (GetBgMap()->GetMapDataContainer().GetGameObjectEventIndex(go->GetDbGuid())).event1;
+    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(go->GetDbGuid())).event1;
     if (event >= BG_AV_MAX_NODES)                           // not a node
         return;
     AVNodeIds node = AVNodeIds(event);
 
-    switch ((GetBgMap()->GetMapDataContainer().GetGameObjectEventIndex(go->GetDbGuid())).event2 % BG_AV_MAX_STATES)
+    switch ((sBattleGroundMgr.GetGameObjectEventIndex(go->GetDbGuid())).event2 % BG_AV_MAX_STATES)
     {
         case POINT_CONTROLLED:
             ProcessPlayerAssaultsPoint(player, node);
@@ -682,10 +670,6 @@ void BattleGroundAV::ProcessPlayerDefendsPoint(Player* player, AVNodeIds node)
     uint32 objId     = isTower ? 64 : 65;
 
     // process world state
-    if (!isTower)
-    {
-        GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(avNodeDefaults[node].graveyardId, BG_AV_ZONE_MAIN, GetTeamIdByTeamIndex(teamIdx));
-    }
 
     // send yell and sound
     DoSendYellToTeam(teamIdx, yellId, node);
@@ -848,11 +832,6 @@ void BattleGroundAV::DefendNode(AVNodeIds node, PvpTeamIndex teamIdx)
     m_nodes[node].prevState  = m_nodes[node].state;
     m_nodes[node].state      = POINT_CONTROLLED;
     m_nodes[node].timer      = 0;
-}
-
-int32 BattleGroundAV::GetTeamScore(PvpTeamIndex team) const
-{
-    return GetBgMap()->GetVariableManager().GetVariable(team == TEAM_INDEX_ALLIANCE ? BG_AV_STATE_SCORE_A : BG_AV_STATE_SCORE_H);
 }
 
 void BattleGroundAV::Reset()

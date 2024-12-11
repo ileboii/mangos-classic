@@ -621,8 +621,6 @@ class BattleGroundAV : public BattleGround
         void DestroyNode(AVNodeIds node);
         void DefendNode(AVNodeIds node, PvpTeamIndex teamIdx);
 
-        int32 GetTeamScore(PvpTeamIndex team) const override;
-
         void PopulateNode(AVNodeIds node);
         int32 GetNodeMessageId(AVNodeIds node) const;
 

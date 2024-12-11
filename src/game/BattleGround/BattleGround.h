@@ -24,7 +24,6 @@
 #include "Maps/Map.h"
 #include "Util/ByteBuffer.h"
 #include "Entities/ObjectGuid.h"
-#include "BattleGround/BattleGroundDefines.h"
 
 // magic event-numbers
 #define BG_EVENT_NONE 255
@@ -299,9 +298,9 @@ class BattleGround
 
         // Set methods:
         void SetName(char const* name)      { m_name = name; }
-        void SetTypeId(BattleGroundTypeId typeId) { m_typeId = typeId; }
-        void SetBracketId(BattleGroundBracketId id) { m_bracketId = id; }
-        void SetStatus(BattleGroundStatus status);
+        void SetTypeID(BattleGroundTypeId typeId) { m_typeId = typeId; }
+        void SetBracketId(BattleGroundBracketId Id) { m_bracketId = Id; }
+        void SetStatus(BattleGroundStatus status) { m_status = status; }
         void SetClientInstanceId(uint32 instanceId) { m_clientInstanceId = instanceId; }
         void SetStartTime(uint32 time)      { m_startTime = time; }
         void SetEndTime(uint32 time)        { m_endTime = time; }
@@ -316,11 +315,11 @@ class BattleGround
         void SetMaxPlayersPerTeam(uint32 maxPlayers) { m_maxPlayersPerTeam = maxPlayers; }
         void SetMinPlayersPerTeam(uint32 minPlayers) { m_minPlayersPerTeam = minPlayers; }
 
-        bool AddToBgFreeSlotQueue();                           // this queue will be useful when more battlegrounds instances will be available
-        void RemovedFromBgFreeSlotQueue(bool removeFromQueue); // this method could delete whole BG instance, if another free is available
+        void AddToBgFreeSlotQueue();                        // this queue will be useful when more battlegrounds instances will be available
+        void RemoveFromBgFreeSlotQueue();                   // this method could delete whole BG instance, if another free is available
 
-        // Functions to decrease or increase player count
-        void SetInvitedCount(Team team, uint32 count);
+        void DecreaseInvitedCount(Team team)      { (team == ALLIANCE) ? --m_invitedAlliance : --m_invitedHorde; }
+        void IncreaseInvitedCount(Team team)      { (team == ALLIANCE) ? ++m_invitedAlliance : ++m_invitedHorde; }
         uint32 GetInvitedCount(Team team) const
         {
             if (team == ALLIANCE)
@@ -540,8 +539,6 @@ class BattleGround
 
         // returns the other team index
         static PvpTeamIndex GetOtherTeamIndex(PvpTeamIndex teamIdx) { return teamIdx == TEAM_INDEX_ALLIANCE ? TEAM_INDEX_HORDE : TEAM_INDEX_ALLIANCE; }
-
-        virtual int32 GetTeamScore(PvpTeamIndex team) const { return 0; }
 
         // checke if player is inside battleground
         bool IsPlayerInBattleGround(ObjectGuid /*playerGuid*/);

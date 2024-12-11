@@ -238,8 +238,6 @@ class BattleGroundAB : public BattleGround
         // Process node capture
         void ProcessNodeCapture(uint8 node, PvpTeamIndex teamIdx);
 
-        int32 GetTeamScore(PvpTeamIndex team) const override;
-
         // Get text id for node
         int32 GetNodeMessageId(uint8 node) const;
 

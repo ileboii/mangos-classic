@@ -25,10 +25,6 @@
 #include "BattleGroundMgr.h"
 #include "Server/WorldPacket.h"
 
-#ifdef ENABLE_MODULES
-#include "ModuleMgr.h"
-#endif
-
 BattleGroundWS::BattleGroundWS() : m_reputationCapture(0), m_honorWinKills(0), m_honorEndKills(0)
 {
     // set battleground start message ids
@@ -90,10 +86,6 @@ void BattleGroundWS::StartingEventOpenDoors()
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(WS_GRAVEYARD_MAIN_HORDE,        BG_WS_ZONE_ID_MAIN, HORDE);
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(WS_GRAVEYARD_FLAGROOM_ALLIANCE, BG_WS_ZONE_ID_MAIN, TEAM_INVALID);
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(WS_GRAVEYARD_FLAGROOM_HORDE,    BG_WS_ZONE_ID_MAIN, TEAM_INVALID);
-
-#ifdef ENABLE_MODULES
-    sModuleMgr.OnStartBattleGround(this);
-#endif
 }
 
 void BattleGroundWS::AddPlayer(Player* player)
@@ -180,7 +172,6 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
 
     // Horde flag in base (but not respawned yet)
     GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_BASE);
-    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[otherTeamIdx], BG_WS_FLAG_ICON_INVISIBLE);
     m_flagOnRespawn[otherTeamIdx] = true;
 
     // Drop Horde Flag from Player
@@ -196,6 +187,9 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     // update score
     int32 pointsWorldState = team == ALLIANCE ? BG_WS_STATE_CAPTURES_ALLIANCE : BG_WS_STATE_CAPTURES_HORDE;
     GetBgMap()->GetVariableManager().SetVariable(pointsWorldState, GetBgMap()->GetVariableManager().GetVariable(pointsWorldState) + 1);
+
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[teamIdx], BG_WS_FLAG_STATE_ON_BASE);
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[teamIdx], BG_WS_FLAG_ICON_INVISIBLE);
 
     // despawn flags
     SpawnEvent(WS_EVENT_FLAG_A, 0, false);
@@ -278,10 +272,6 @@ void BattleGroundWS::ProcessFlagPickUpFromBase(Player* player, Team attackerTeam
     PlaySoundToAll(wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_PICKEDUP].soundId);
     SendMessageToAll(wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_PICKEDUP].messageId, wsgFlagData[teamIdx][BG_WS_FLAG_ACTION_PICKEDUP].chatType, player);
     player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_PVP_ACTIVE_CANCELS);
-
-#ifdef ENABLE_MODULES
-    sModuleMgr.OnPickUpFlag(this, player, attackerTeam);
-#endif
 }
 
 // Function that handles the click action on the dropped flag
@@ -336,11 +326,6 @@ void BattleGroundWS::ProcessDroppedFlagActions(Player* player, GameObject* targe
 
     if (actionId != BG_WS_FLAG_ACTION_NONE)
         player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_PVP_ACTIVE_CANCELS);
-}
-
-int32 BattleGroundWS::GetTeamScore(PvpTeamIndex team) const
-{
-    return GetBgMap()->GetVariableManager().GetVariable(team == TEAM_INDEX_ALLIANCE ? BG_WS_STATE_CAPTURES_ALLIANCE : BG_WS_STATE_CAPTURES_HORDE);
 }
 
 // Handle flag click event
@@ -587,10 +572,6 @@ void BattleGroundWS::UpdatePlayerScore(Player* player, uint32 type, uint32 value
             BattleGround::UpdatePlayerScore(player, type, value);
             break;
     }
-
-#ifdef ENABLE_MODULES
-    sModuleMgr.OnUpdatePlayerScore(this, player, type, value);
-#endif
 }
 
 Team BattleGroundWS::GetPrematureWinner()
