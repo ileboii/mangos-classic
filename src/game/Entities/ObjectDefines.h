@@ -32,11 +32,11 @@ static constexpr float const TRADE_DISTANCE                 = 11.11f;
 static constexpr float const MAX_VISIBILITY_DISTANCE        = SIZE_OF_GRIDS;                // max distance for visible object show, limited in 533 yards
 static constexpr float const VISIBILITY_DISTANCE_GIGANTIC   = 400.0f;
 static constexpr float const VISIBILITY_DISTANCE_LARGE      = 200.0f;
-static constexpr float const VISIBILITY_DISTANCE_NORMAL     = 100.0f;
+static constexpr float const VISIBILITY_DISTANCE_NORMAL     = 200.0f;
 static constexpr float const VISIBILITY_DISTANCE_SMALL      = 50.0f;
 static constexpr float const VISIBILITY_DISTANCE_TINY       = 25.0f;
 static constexpr float const DEFAULT_VISIBILITY_DISTANCE    = VISIBILITY_DISTANCE_NORMAL;   // default visible distance, 100 yards on continents
-static constexpr float const DEFAULT_VISIBILITY_INSTANCE    = 170.0f;                       // default visible distance in instances, 170 yards
+static constexpr float const DEFAULT_VISIBILITY_INSTANCE    = 200.0f;                       // default visible distance in instances, 170 yards
 static constexpr float const DEFAULT_VISIBILITY_BG          = 533.0f;                       // default visible distance in BG/Arenas, 533 yards
 
 static constexpr float const DEFAULT_WORLD_OBJECT_SIZE      = 0.388999998569489f;           // currently used (correctly?) for any non Unit world objects.
