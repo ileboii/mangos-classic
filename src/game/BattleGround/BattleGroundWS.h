@@ -146,7 +146,7 @@ enum WSScriptEvents
 };
 
 static const uint32 wsFlagPickedUp[PVP_TEAM_COUNT] = { BG_WS_STATE_FLAG_PICKED_UP_FLAG_STATE_ALLIANCE, BG_WS_STATE_FLAG_PICKED_UP_FLAG_STATE_HORDE };
-static const uint32 wsFlagHUDPickedUp[PVP_TEAM_COUNT] = { BG_WS_STATE_FLAG_ALLIANCE, BG_WS_STATE_FLAG_HORDE };
+static const uint32 wsFlagHUDPickedUp[PVP_TEAM_COUNT] = { BG_WS_STATE_FLAG_HORDE, BG_WS_STATE_FLAG_ALLIANCE };
 
 static const uint32 wsDroppedFlagId[PVP_TEAM_COUNT] = { GO_WS_SILVERWING_FLAG_DROP, GO_WS_WARSONG_FLAG_DROP };
 
@@ -232,7 +232,7 @@ class BattleGroundWS : public BattleGround
 
         // Flag interactions
         void ClearDroppedFlagGuid(Team team)  { m_droppedFlagGuid[GetTeamIndexByTeamId(team)].Clear();}
-        ObjectGuid const& GetDroppedFlagGuid(Team team) const { return m_droppedFlagGuid[GetTeamIndexByTeamId(team)];}
+        ObjectGuid const& GetDroppedFlagGuid(Team team) const { return m_droppedFlagGuid[GetTeamIndexByTeamId(team)]; }
 
         void RespawnFlagAtBase(Team team, bool wasCaptured);
         void RespawnDroppedFlag(Team team);
@@ -240,6 +240,8 @@ class BattleGroundWS : public BattleGround
 
         void ProcessFlagPickUpFromBase(Player* player, Team attackerTeam);
         void ProcessDroppedFlagActions(Player* player, GameObject* target);
+
+        int32 GetTeamScore(PvpTeamIndex team) const override;
 
         // process score
         void ProcessPlayerFlagScoreEvent(Player* source);

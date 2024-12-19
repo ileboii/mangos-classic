@@ -26,6 +26,10 @@
 #include "Server/WorldPacket.h"
 #include "Globals/ObjectMgr.h"
 
+#ifdef ENABLE_MODULES
+#include "ModuleMgr.h"
+#endif
+
 BattleGroundAB::BattleGroundAB(): m_isInformedNearVictory(false), m_honorTicks(0), m_reputationTics(0)
 {
     m_startMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
@@ -163,6 +167,10 @@ void BattleGroundAB::StartingEventOpenDoors()
     // disable gy inside base after bg start
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_ALLIANCE_BASE, BG_AB_ZONE_MAIN, TEAM_INVALID);
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_HORDE_BASE, BG_AB_ZONE_MAIN, TEAM_INVALID);
+
+#ifdef ENABLE_MODULES
+    sModuleMgr.OnStartBattleGround(this);
+#endif
 }
 
 void BattleGroundAB::AddPlayer(Player* player)
@@ -252,6 +260,11 @@ void BattleGroundAB::ProcessNodeCapture(uint8 node, PvpTeamIndex teamIdx)
     GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(abGraveyardIds[node], BG_AB_ZONE_MAIN, team);
 }
 
+int32 BattleGroundAB::GetTeamScore(PvpTeamIndex team) const
+{
+    return GetBgMap()->GetVariableManager().GetVariable(team == TEAM_INDEX_ALLIANCE ? BG_AB_OP_RESOURCES_ALLY : BG_AB_OP_RESOURCES_HORDE);
+}
+
 // Method that handles the banner click
 void BattleGroundAB::HandlePlayerClickedOnFlag(Player* player, GameObject* go)
 {
@@ -268,7 +281,7 @@ void BattleGroundAB::HandlePlayerClickedOnFlag(Player* player, GameObject* go)
     uint32 factionStrig = 0;
 
     // process battleground event
-    uint8 event = (sBattleGroundMgr.GetGameObjectEventIndex(go->GetDbGuid())).event1;
+    uint8 event = (GetBgMap()->GetMapDataContainer().GetGameObjectEventIndex(go->GetDbGuid())).event1;
     if (event >= BG_AB_MAX_NODES)                           // not a node
         return;
 
@@ -430,8 +443,12 @@ void BattleGroundAB::Reset()
     }
 
     // setup graveyards
-    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_ALLIANCE, BG_AB_ZONE_MAIN, ALLIANCE);
-    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_HORDE, BG_AB_ZONE_MAIN, HORDE);
+    // disable gy near base during starting phase
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_ALLIANCE, BG_AB_ZONE_MAIN, TEAM_INVALID);
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_HORDE, BG_AB_ZONE_MAIN, TEAM_INVALID);
+    // enable gy inside base during starting phase
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_ALLIANCE_BASE, BG_AB_ZONE_MAIN, ALLIANCE);
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(AB_GRAVEYARD_HORDE_BASE, BG_AB_ZONE_MAIN, HORDE);
 }
 
 void BattleGroundAB::EndBattleGround(Team winner)
@@ -464,6 +481,10 @@ void BattleGroundAB::UpdatePlayerScore(Player* source, uint32 type, uint32 value
             BattleGround::UpdatePlayerScore(source, type, value);
             break;
     }
+
+#ifdef ENABLE_MODULES
+    sModuleMgr.OnUpdatePlayerScore(this, source, type, value);
+#endif
 }
 
 Team BattleGroundAB::GetPrematureWinner()
